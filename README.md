@@ -20,8 +20,8 @@ Creates a FastText model from a multi FASTA file.
 
 ```
 $ ness build_model \
-    --in swissprot.fasta \
-    --out swissprot.model
+    --input swissprot.fasta \
+    --output swissprot.model
 ```
 
 ### `ness build_database`
@@ -31,16 +31,16 @@ model previously built.
 
 ```
 $ ness build_database \
-    --in swissprot.fasta \
+    --input swissprot.fasta \
     --model swissprot.model \
-    --out swissprot
+    --output swissprot
 ```
 
 ### `ness search`
 
 Similarly to the `blast*` programs, compares a multi  FASTA file with the previously formated database.
 ```
-$ ness search --query sequences.fasta --database swissprot.h5 --out hits.csv
+$ ness search --input sequences.fasta --database swissprot --model swissprot.model --out hits.csv
 ```
 # Cite
 Kremer, FS *et al* (2021). *NESS: an word embedding-based tool for alignment-free sequence search*. Available at: https://github.com/omixlab/ness. 
