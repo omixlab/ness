@@ -1,0 +1,10 @@
+name: ness
+channels:
+  - pytorch
+dependencies:
+  - python=3.7
+  - pip
+  - jupyter
+  - faiss-cpu
+  - pip:
+    - -r requirements.txt
