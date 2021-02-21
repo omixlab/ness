@@ -87,3 +87,5 @@ cython_debug/
 *.csv
 *.fasta
 *.gz
+*.model
+*.npy

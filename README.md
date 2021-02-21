@@ -11,7 +11,7 @@ Currently the NESS CLI interface provides the following commands:
 Creates a FastText model from a multi FASTA file. 
 
 ```
-$ ness build_model \
+$ ness.py build_model \
     --input swissprot.fasta \
     --output swissprot.model
 ```
@@ -22,7 +22,7 @@ Similarly to `makeblastdb`, formats a sequence database with vectors computed us
 model previously built. 
 
 ```
-$ ness build_database \
+$ ness.py build_database \
     --input swissprot.fasta \
     --model swissprot.model \
     --output swissprot
@@ -32,7 +32,7 @@ $ ness build_database \
 
 Similarly to the `blast*` programs, compares a multi  FASTA file with the previously formated database.
 ```
-$ ness search --input sequences.fasta --database swissprot --model swissprot.model --out hits.csv
+$ ness.py search --input sequences.fasta --database swissprot --model swissprot.model --out hits.csv
 ```
 # Cite
 Kremer, FS *et al* (2021). *NESS: an word embedding-based tool for alignment-free sequence search*. Available at: https://github.com/omixlab/ness. 

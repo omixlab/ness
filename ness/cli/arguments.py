@@ -1,8 +1,8 @@
 from argparse import ArgumentParser
-
 from ness.commands import build_database
 from ness.commands import build_model
 from ness.commands import search
+import multiprocessing as mp
 
 argument_parser = ArgumentParser()
 argument_subparsers = argument_parser.add_subparsers()
@@ -28,4 +28,5 @@ search_subparser.add_argument('--model', required=True)
 search_subparser.add_argument('--database', required=True)
 search_subparser.add_argument('--debug', action="store_true", default=False)
 search_subparser.add_argument('--hits', default=10, type=int)
+search_subparser.add_argument('--threads', default=mp.cpu_count(), type=int)
 search_subparser.set_defaults(func=search)
