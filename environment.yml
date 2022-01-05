@@ -6,6 +6,8 @@ dependencies:
   - pip
   - jupyter
   - faiss-cpu
+  - nomkl
+  - numexpr
   - pip:
     - -r requirements.txt
     - -e .

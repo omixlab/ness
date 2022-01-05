@@ -9,15 +9,21 @@ class FASTAIterator:
     def __iter__(self):
         reader = open(self.fasta_file)
         for record in SeqIO.parse(reader, 'fasta'):
-            yield str(record.seq)
+            yield record
+        reader.seek(0)
 
 class FASTANgramIterator:
 
-    def __init__(self, fasta_file, ksize=3):
+    def __init__(self, fasta_file, ksize=3, both_strands=False, format='str'):
         self.fasta_file = fasta_file
         self.ksize = ksize
+        self.both_strands = False
+        self.format = format
 
     def __iter__(self):
         for s, sequence in enumerate(FASTAIterator(self.fasta_file)):
-            for ngrams_frame in split_ngrams(sequence, ksize=self.ksize):
-                yield ngrams_frame
+            for ngrams_frame in split_ngrams(sequence.seq, ksize=self.ksize, both_strands=self.both_strands):
+                if self.format == 'list':
+                    yield ngrams_frame
+                else:
+                    yield ' '.join(ngrams_frame)

@@ -6,47 +6,43 @@ import numpy as np
 import gensim.models
 import pickle
 import copy
+import json
+import tempfile
+import os
 
 class FastText(BaseModel):
 
-    def __init__(self, vector_size=100, window_size=25, min_count=1, ksize=3):
+
+    def __init__(self, vector_size=100, window_size=25, min_count=1, ksize=3, temp_corpus_file=os.path.join(tempfile.TemporaryDirectory().name, 'corpus.txt')):
         
         self.model = None
-        self.vector_size = vector_size
-        self.window_size = window_size
-        self.min_count = min_count
-        self.ksize = ksize
+        self.config = {'model_type': 'fasttext'}
+        self.config['vector_size'] = vector_size
+        self.config['window_size'] = window_size
+        self.config['min_count']   = min_count
+        self.config['ksize']       = ksize
+        self.temp_corpus_file      = temp_corpus_file
+
+        temp_directory = os.path.dirname(temp_corpus_file)
+
+        if not os.path.isdir(temp_directory):
+            os.mkdir(temp_directory)
     
     def build_model(self, fasta_file:str, epochs=3) -> None:
 
-        self.model = gensim.models.FastText(size=self.vector_size, window=self.window_size, min_count=self.min_count, workers=4, sg=1)
-        self.model.build_vocab(sentences=FASTANgramIterator(fasta_file, ksize=self.ksize))
-        self.model.train(sentences=FASTANgramIterator(fasta_file, ksize=self.ksize), epochs=epochs, total_examples=self.model.corpus_count)
+        self.model = gensim.models.FastText(size=self.config['vector_size'], window=self.config['window_size'], min_count=self.config['min_count'], workers=4, sg=1)
 
-    def compute_sequence_vector(self, sequence:str) -> None:
+        with open(self.temp_corpus_file, 'w') as corpus_writer:
+            for sequence_ngrams in FASTANgramIterator(fasta_file, ksize=self.config['ksize']):
+                corpus_writer.write(sequence_ngrams)
 
-        ngrams_frames = split_ngrams(sequence, ksize=self.ksize)
-        ngrams_frames_vectors = np.zeros((self.ksize, self.vector_size))
-
-        for k, ngrams_frame in enumerate(ngrams_frames):
-
-            for ngram in ngrams_frame:
-                try:
-                    ngrams_frames_vectors[k,:] += self.model.wv[ngram]
-                except:
-                    pass    
-        return ngrams_frames_vectors
+        self.model.build_vocab(corpus_file=self.temp_corpus_file)
+        self.model.train(corpus_file=self.temp_corpus_file, epochs=epochs, total_examples=self.model.corpus_count, total_words=self.model.corpus_total_words)       
     
-    def save(self, file_name:str) -> None:
-
-        self.model.save(file_name + '.vecs')
-        obj = copy.copy(self)
-        del obj.model
-        pickle.dump(obj, open(file_name, 'wb'))
-    
-    @classmethod
-    def load(self, file_name:str) -> FastText:
+    @staticmethod
+    def load(file_name:str) -> FastText:
         
-        obj = pickle.load(open(file_name, 'rb'))
+        obj = pickle.load(open(file_name +'.pickle', 'rb'))
         obj.model = gensim.models.FastText.load(file_name + '.vecs')
+        obj.config = json.loads(open(file_name + '.json').read())
         return obj

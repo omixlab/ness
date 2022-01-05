@@ -1,14 +1,20 @@
-def split_ngrams(sequence:str, ksize:int=3):
+from Bio.Seq import reverse_complement
+
+def split_ngrams(sequence:str, ksize:int=3, both_strands=False):
     
+    sequences = [sequence]
+
+    if both_strands:
+        sequences.append(reverse_complement(sequence))
+
     ngrams = []
 
-    for k in range(ksize):
+    for sequence in sequences:
         ngrams.append([])
-        sequence_trimmed = sequence[k::]
 
-        for n in range(0, len(sequence_trimmed), ksize):
-            ngram = sequence_trimmed[n:n+ksize]
+        for n in range(0, len(sequence), 1):
+            ngram = sequence[n:n+ksize]
             if len(ngram) == ksize:
-                ngrams[-1].append(ngram)
+                ngrams[-1].append(str(ngram))
 
     return ngrams

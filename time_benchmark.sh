@@ -1,3 +1,4 @@
+
 echo "NESS  (1 thread)"
 echo ''
 time python3 ness.py search --input tests/data/query.fasta --model  tests/data/uniprot_sprot.model --database tests/data/uniprot_sprot --output tests/data/uniprot_sprot.csv --threads 1
