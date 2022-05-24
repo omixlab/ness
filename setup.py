@@ -1,9 +1,8 @@
-from ness import version
 from setuptools import setup, find_packages
 
 setup(
     name="ness",
-    version=version,
+    version="0.0.1",
     packages=find_packages(),
     install_requires=[requirement.strip('\n') for requirement in open('requirements.txt')],
     entry_points={
