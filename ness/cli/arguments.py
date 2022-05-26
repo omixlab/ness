@@ -3,6 +3,8 @@ from ness.commands import build_model
 from ness.commands import search
 from argparse import ArgumentParser
 import multiprocessing as mp
+import tempfile
+import os
 
 argument_parser = ArgumentParser()
 argument_parser.add_argument('--version', action='store_true')
@@ -17,7 +19,8 @@ build_model_subparser.add_argument('--window-size', type=int, default=25)
 build_model_subparser.add_argument('--min-count', type=int, default=1)
 build_model_subparser.add_argument('--ksize', type=int, default=3)
 build_model_subparser.add_argument('--epochs', type=int, default=3)
-build_model_subparser.add_argument('--both_strand', action='store_true', default=False)
+build_model_subparser.add_argument('--corpus-file', type=str, default=os.path.join(tempfile.TemporaryDirectory().name, 'corpus.txt'))
+build_model_subparser.add_argument('--both-strands', action='store_true', default=False)
 build_model_subparser.add_argument('--debug', action="store_true", default=False)
 build_model_subparser.set_defaults(func=build_model)
 
@@ -27,8 +30,12 @@ build_database_subparser.add_argument('--output', required=True)
 build_database_subparser.add_argument('--model', required=True)
 build_database_subparser.add_argument('--database-type', choices=['scann'], default='scann')
 build_database_subparser.add_argument('--chunksize', default=100000, type=int)
+build_database_subparser.add_argument('--slicesize', default=100, type=int)
 build_database_subparser.add_argument('--debug', action="store_true", default=False)
 build_database_subparser.set_defaults(func=build_database)
+
+#build_index
+#map
 
 search_subparser = argument_subparsers.add_parser("search")
 search_subparser.add_argument('--input', required=True)

@@ -10,7 +10,7 @@ import json
 
 class BaseModel:
 
-    def __init__(self, vector_size=100, window_size=25, min_count=1, ksize=3):
+    def __init__(self, vector_size=100, window_size=25, min_count=1, ksize=3, both_strands=False):
         
         self.model = None
         self.config = {'model_type': 'basemodel'}
@@ -33,8 +33,10 @@ class BaseModel:
                 ngrams_vector += self.model.wv[ngram]
             except:
                 pass
-        averaged_ngrams_vector = ngrams_vector / len(ngrams_frame[0])
-        return averaged_ngrams_vector
+        if len(ngrams_frame) > 0:
+            return ngrams_vector / len(ngrams_frame[0])
+        else:
+            return ngrams_vector
     
     def save(self, file_name:str) -> None:
         

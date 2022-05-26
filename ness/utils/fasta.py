@@ -22,8 +22,10 @@ class FASTANgramIterator:
 
     def __iter__(self):
         for s, sequence in enumerate(FASTAIterator(self.fasta_file)):
-            for ngrams_frame in split_ngrams(sequence.seq, ksize=self.ksize, both_strands=self.both_strands):
-                if self.format == 'list':
-                    yield ngrams_frame
-                else:
-                    yield ' '.join(ngrams_frame)
+            sequences = [sequence, sequence.reverse_complement()] if self.both_strands else [sequence]
+            for sequence in sequences:
+                for ngrams_frame in split_ngrams(sequence.seq, ksize=self.ksize, both_strands=self.both_strands):
+                    if self.format == 'list':
+                        yield ngrams_frame
+                    else:
+                        yield ' '.join(ngrams_frame)

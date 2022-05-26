@@ -2,7 +2,7 @@ from __future__ import annotations
 from ness.databases import BaseDatabase
 from ness.models import BaseModel
 from ness.models import load_model
-from ness.utils.iteration import iter_chunks
+from ness.utils.iteration import iter_chunks, slice_sequences
 import multiprocessing as mp
 import pandas as pd
 import numpy as np
@@ -28,12 +28,14 @@ class ScannDatabase(BaseDatabase):
         if not os.path.isdir(self.database_path):
             os.mkdir(self.database_path)
 
-    def insert_sequences(self, sequences, chunksize=10) -> None:
+    def insert_sequences(self, sequences, chunksize=10, slicesize=None) -> None:
 
         h5_file = h5py.File(self.h5_file_name, 'w')
         h5_file_str_datatype = h5py.special_dtype(vlen=str)
 
-        for chunk_id, sequence_chunk in enumerate(iter_chunks(sequences, size=chunksize), start=self.last_chunk_id+1):
+        if slicesize:
+            sequences = slice_sequences(sequences)
+        for chunk_id, sequence_chunk in enumerate(iter_chunks(slice_sequences(sequences), size=chunksize), start=self.last_chunk_id+1):
             sequence_ids, sequence_vectors, sequence_raw = [], [], []
 
             for r, record in enumerate(sequence_chunk):
