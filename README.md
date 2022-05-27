@@ -8,10 +8,10 @@ Currently the NESS CLI interface provides the following commands:
 
 ### `ness build_model`
 
-Creates a Word2Vec model from a multi FASTA file. 
+Creates a Word2Vec model from a multi FASTA file. For DNA sequences, use `--both-strands`.
 
 ```
-$ ness.py build_model \
+$ ness build_model \
     --input swissprot.fasta \
     --output swissprot.model
 ```
@@ -19,10 +19,10 @@ $ ness.py build_model \
 ### `ness build_database`
 
 Similarly to `makeblastdb`, formats a sequence database with vectors computed using a
-model previously built. 
+model previously built. For DNA sequences, use `--both-strands`.
 
 ```
-$ ness.py build_database \
+$ ness build_database \
     --input swissprot.fasta \
     --model swissprot.model \
     --output swissprot
@@ -32,7 +32,7 @@ $ ness.py build_database \
 
 Similarly to the `blast*` programs, compares a multi  FASTA file with the previously formated database.
 ```
-$ ness.py search --input sequences.fasta --database swissprot --output hits.csv
+$ ness search --input sequences.fasta --database swissprot --output hits.csv
 ```
 # Cite
 Kremer, FS *et al* (2021). *NESS: an word embedding-based tool for alignment-free sequence search*. Available at: https://github.com/omixlab/ness. 
