@@ -3,6 +3,7 @@ from ness.databases import BaseDatabase
 from ness.models import BaseModel
 from ness.models import load_model
 from ness.utils.iteration import iter_chunks, slice_sequences
+import tensorflow as tf
 import multiprocessing as mp
 import pandas as pd
 import numpy as np
@@ -22,20 +23,20 @@ class ScannDatabase(BaseDatabase):
         self.pickle_file_name = os.path.join(database_path, 'database.pickle')
         self.model_file_name  = os.path.join(database_path, 'model')
         self.model = model
-        self.database_metadata = {'records': 0, 'chunks': [], 'database_type': 'faiss'}
+        self.database_metadata = {'records': 0, 'chunks': [], 'database_type': 'scann'}
         self.last_chunk_id = -1
 
         if not os.path.isdir(self.database_path):
             os.mkdir(self.database_path)
 
-    def insert_sequences(self, sequences, chunksize=10, slicesize=None) -> None:
+    def insert_sequences(self, sequences, chunksize=10, slicesize=None, jumpsize=None) -> None:
 
         h5_file = h5py.File(self.h5_file_name, 'w')
         h5_file_str_datatype = h5py.special_dtype(vlen=str)
 
-        if slicesize:
-            sequences = slice_sequences(sequences)
-        for chunk_id, sequence_chunk in enumerate(iter_chunks(slice_sequences(sequences), size=chunksize), start=self.last_chunk_id+1):
+        if slicesize is not None:
+            sequences = slice_sequences(sequences, size=slicesize, jump=jumpsize)
+        for chunk_id, sequence_chunk in enumerate(iter_chunks(sequences, chunksize), start=self.last_chunk_id+1):
             sequence_ids, sequence_vectors, sequence_raw = [], [], []
 
             for r, record in enumerate(sequence_chunk):
@@ -45,7 +46,6 @@ class ScannDatabase(BaseDatabase):
                 sequence_ids.append(record.id.encode('ascii', 'ignore'))
                 sequence_raw.append(str(record.seq))
                 self.database_metadata['records'] += 1
-                print(self.database_metadata['records'])
 
             sequence_vectors_array = np.array(sequence_vectors)
 
@@ -67,17 +67,27 @@ class ScannDatabase(BaseDatabase):
             
         return self.database_metadata['records']
 
-    def find_sequences(self, sequences:np.array, k:int=10, threads=mp.cpu_count(), chunksize=10) -> pd.DataFrame:
+    def find_sequences(self, sequences:np.array, k:int=10, threads=mp.cpu_count(), chunksize=10, mode='ah') -> pd.DataFrame:
 
         dataset = h5py.File(self.h5_file_name, "r")['data']
         dataset_ids = h5py.File(self.h5_file_name, "r")['ids']
 
+        tf.config.threading.set_inter_op_parallelism_threads(threads)
+        tf.config.threading.set_intra_op_parallelism_threads(threads)
+
         searcher = scann.scann_ops_pybind.builder(dataset, k, "dot_product").tree(
             num_leaves=int(np.sqrt(self.database_metadata['records'])),
             num_leaves_to_search=self.database_metadata['records']
-        ).score_brute_force().build()
-   
-        df_results = pd.DataFrame(columns=['query', 'subject', 'cosine_similarity'])      
+        )
+        
+        if mode == 'score_ah':
+            searcher = searcher.score_ah(2, anisotropic_quantization_threshold=0.2)
+        else:
+            searcher = searcher.score_brute_force()
+
+        searcher.set_n_training_threads(threads)
+        
+        searcher = searcher.build()
 
         query_ids = []
         query_vectors = []
@@ -89,18 +99,34 @@ class ScannDatabase(BaseDatabase):
 
         query_vector_normalized = query_vectors / np.linalg.norm(query_vectors, axis=1)[:, np.newaxis]
         
-        df_query_results = pd.DataFrame(columns=['query', 'subject', 'cosine_similarity'])
-
         hits, distances = searcher.search_batched(query_vector_normalized)
         
+        hit_ids_output   = []
+        query_ids_output = []
+        distances_output = []
+        
         for q, query_id in enumerate(query_ids):
-            for h, hit in enumerate(hits[q,:]):                
-                df_query_results = df_query_results.append(
-                    {'query': query_id, 'subject': dataset_ids[hit], 'cosine_similarity': distances[q][h]},
-                ignore_index=True
-                )
+            for h, hit in enumerate(hits[q,:]): 
+                query_ids_output.append(query_id)
+                hit_ids_output.append(hit)
+                distances_output.append(distances[q][h])
 
-        df_query_results = df_query_results.groupby(by=['query', 'subject']).max().sort_values(by=['query', 'subject', 'cosine_similarity'], ascending=False).reset_index()
+        hit_ids_output_sorted = sorted(set(hit_ids_output))
+        hit_def_output_sorted = dataset_ids[hit_ids_output_sorted]
+
+        #import pdb; pdb.set_trace()
+
+        hdf_id_to_def  = dict(zip(hit_ids_output_sorted, hit_def_output_sorted))
+        hit_def_output = [hdf_id_to_def[id] for id in hit_ids_output]
+        
+        df_query_results = pd.DataFrame(
+            {
+                'query':query_ids_output, 
+                'subject': hit_def_output, 
+                'cosine_similarity': distances_output
+            }, columns=['query', 'subject', 'cosine_similarity']
+        ).groupby(by=['query', 'subject']).max().sort_values(by=['query', 'cosine_similarity'], ascending=False).reset_index()
+
         return df_query_results
 
     def save(self, path:str=None) -> None:

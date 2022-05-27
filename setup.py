@@ -2,11 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="ness",
-<<<<<<< HEAD
     version='0.0.1',
-=======
-    version="0.0.1",
->>>>>>> ffbb77f2ac0543545ddce7f8e65bd9fa16082cfa
     packages=find_packages(),
     install_requires=[requirement.strip('\n') for requirement in open('requirements.txt')],
     entry_points={

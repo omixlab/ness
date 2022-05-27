@@ -13,10 +13,9 @@ def main():
     if hasattr(arguments, 'func'):
         arguments.func(arguments)
 
-    if arguments.version:
+    elif arguments.version:
         from ness import version
         print(version)
-
 
     else:
         print(logo)
