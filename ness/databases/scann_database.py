@@ -16,7 +16,7 @@ import os
 
 class ScannDatabase(BaseDatabase):
     
-    def __init__(self, database_path:str, model:BaseModel) -> None:
+    def __init__(self, database_path:str, model:BaseModel, slicesize=None, jumpsize=None) -> None:
         self.database_path = database_path
         self.h5_file_name = os.path.join(database_path, 'database.h5')
         self.config_file_name = os.path.join(database_path, 'database.json')
@@ -24,18 +24,20 @@ class ScannDatabase(BaseDatabase):
         self.model_file_name  = os.path.join(database_path, 'model')
         self.model = model
         self.database_metadata = {'records': 0, 'chunks': [], 'database_type': 'scann'}
+        self.database_metadata['slicesize'] = slicesize
+        self.database_metadata['jumpsize'] = jumpsize
         self.last_chunk_id = -1
 
         if not os.path.isdir(self.database_path):
             os.mkdir(self.database_path)
 
-    def insert_sequences(self, sequences, chunksize=10, slicesize=None, jumpsize=None) -> None:
+    def insert_sequences(self, sequences, chunksize=10) -> None:
 
         h5_file = h5py.File(self.h5_file_name, 'w')
         h5_file_str_datatype = h5py.special_dtype(vlen=str)
 
-        if slicesize is not None:
-            sequences = slice_sequences(sequences, size=slicesize, jump=jumpsize)
+        if self.database_metadata['slicesize'] is not None:
+            sequences = slice_sequences(sequences, size=self.database_metadata['slicesize'], jump=self.database_metadata['jumpsize'])
         for chunk_id, sequence_chunk in enumerate(iter_chunks(sequences, chunksize), start=self.last_chunk_id+1):
             sequence_ids, sequence_vectors, sequence_raw = [], [], []
 
@@ -68,6 +70,8 @@ class ScannDatabase(BaseDatabase):
         return self.database_metadata['records']
 
     def find_sequences(self, sequences:np.array, k:int=10, threads=mp.cpu_count(), chunksize=10, mode='ah') -> pd.DataFrame:
+        if self.database_metadata['slicesize'] is not None:
+            sequences = slice_sequences(sequences, size=self.database_metadata['slicesize'], jump=self.database_metadata['jumpsize'])
 
         dataset = h5py.File(self.h5_file_name, "r")['data']
         dataset_ids = h5py.File(self.h5_file_name, "r")['ids']

@@ -11,6 +11,6 @@ def build_database(arguments:Namespace):
 
     assert (arguments.database_type in databases)
     
-    database = databases[arguments.database_type](database_path=arguments.output, model=model)
-    database.insert_sequences(fasta_iterator, chunksize=arguments.chunksize, slicesize=arguments.slicesize, jumpsize=arguments.jumpsize)
+    database = databases[arguments.database_type](database_path=arguments.output, model=model, slicesize=arguments.slicesize, jumpsize=arguments.jumpsize)
+    database.insert_sequences(fasta_iterator, chunksize=arguments.chunksize)
     database.save()
