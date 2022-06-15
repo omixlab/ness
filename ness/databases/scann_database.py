@@ -91,10 +91,11 @@ class ScannDatabase(BaseDatabase):
         
         searcher = searcher.build()
 
-        if self.database_metadata['slicesize'] is not None:
-            sequences = slice_sequences(sequences, size=self.database_metadata['slicesize'], jump=self.database_metadata['jumpsize'])
+        for sequence_chunk in iter_chunks(sequences, chunksize):
 
-        for sequence_chunk in iter_chunks(sequences, chunksize=chunksize):
+            if self.database_metadata['slicesize'] is not None:
+                sequence_chunk = slice_sequences(sequence_chunk, size=self.database_metadata['slicesize'], jump=self.database_metadata['jumpsize'])
+
             query_ids = []
             query_vectors = []
 

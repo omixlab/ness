@@ -5,6 +5,6 @@ scikit-learn
 biopython
 gensim>4.0.0
 jsonlines
-scann
+scann==1.2.6
 h5py
 pysam

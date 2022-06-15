@@ -1,15 +1,10 @@
 name: ness
 channels:
-  - pytorch
   - conda-forge
 dependencies:
   - python=3.7
   - pip
   - jupyter
-  - faiss-cpu
-  - nomkl
-  - numexpr
-  - nmslib
   - pip:
     - -r requirements.txt
     - -e .
