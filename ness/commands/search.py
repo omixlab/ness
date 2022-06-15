@@ -25,8 +25,12 @@ def search(arguments:Namespace):
     sequences = SeqIO.parse(reader, file_format)
 
     if database.database_metadata['database_type'] == 'scann':
-        df_hits = database.find_sequences(sequences, k=arguments.hits, threads=arguments.threads, mode=arguments.scann_mode)
+        df_hits_chunks = database.find_sequences(sequences, k=arguments.hits, threads=arguments.threads, mode=arguments.scann_mode, chunksize=arguments.chunksize)
     else:
-        df_hits = database.find_sequences(sequences, k=arguments.hits, threads=arguments.threads)
+        df_hits_chunks = database.find_sequences(sequences, k=arguments.hits, threads=arguments.threads, chunksize=arguments.chunksize)
 
-    df_hits.to_csv(arguments.output, index=False)
+    for chunk_id, df_hits_chunk in enumerate(df_hits_chunks):
+        if chunk_id == 0:
+            df_hits_chunk.to_csv(arguments.output, index=False)
+        else:
+            df_hits_chunk.to_csv(arguments.ouput, index=False, mode='a', header=False)

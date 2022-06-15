@@ -70,9 +70,7 @@ class ScannDatabase(BaseDatabase):
         return self.database_metadata['records']
 
     def find_sequences(self, sequences:np.array, k:int=10, threads=mp.cpu_count(), chunksize=10, mode='ah') -> pd.DataFrame:
-        if self.database_metadata['slicesize'] is not None:
-            sequences = slice_sequences(sequences, size=self.database_metadata['slicesize'], jump=self.database_metadata['jumpsize'])
-
+        
         dataset = h5py.File(self.h5_file_name, "r")['data']
         dataset_ids = h5py.File(self.h5_file_name, "r")['ids']
 
@@ -93,45 +91,49 @@ class ScannDatabase(BaseDatabase):
         
         searcher = searcher.build()
 
-        query_ids = []
-        query_vectors = []
+        if self.database_metadata['slicesize'] is not None:
+            sequences = slice_sequences(sequences, size=self.database_metadata['slicesize'], jump=self.database_metadata['jumpsize'])
 
-        for record in sequences:
-            vector = self.model.compute_sequence_vector(str(record.seq))
-            query_ids.append(record.id)
-            query_vectors.append(vector)
+        for sequence_chunk in iter_chunks(sequences, chunksize=chunksize):
+            query_ids = []
+            query_vectors = []
 
-        query_vector_normalized = query_vectors / np.linalg.norm(query_vectors, axis=1)[:, np.newaxis]
-        
-        hits, distances = searcher.search_batched(query_vector_normalized)
-        
-        hit_ids_output   = []
-        query_ids_output = []
-        distances_output = []
-        
-        for q, query_id in enumerate(query_ids):
-            for h, hit in enumerate(hits[q,:]): 
-                query_ids_output.append(query_id)
-                hit_ids_output.append(hit)
-                distances_output.append(distances[q][h])
+            for record in sequence_chunk:
+                vector = self.model.compute_sequence_vector(str(record.seq))
+                query_ids.append(record.id)
+                query_vectors.append(vector)
 
-        hit_ids_output_sorted = sorted(set(hit_ids_output))
-        hit_def_output_sorted = dataset_ids[hit_ids_output_sorted]
+            query_vector_normalized = query_vectors / np.linalg.norm(query_vectors, axis=1)[:, np.newaxis]
+            
+            hits, distances = searcher.search_batched(query_vector_normalized)
+            
+            hit_ids_output   = []
+            query_ids_output = []
+            distances_output = []
+            
+            for q, query_id in enumerate(query_ids):
+                for h, hit in enumerate(hits[q,:]): 
+                    query_ids_output.append(query_id)
+                    hit_ids_output.append(hit)
+                    distances_output.append(distances[q][h])
 
-        #import pdb; pdb.set_trace()
+            hit_ids_output_sorted = sorted(set(hit_ids_output))
+            hit_def_output_sorted = dataset_ids[hit_ids_output_sorted]
 
-        hdf_id_to_def  = dict(zip(hit_ids_output_sorted, hit_def_output_sorted))
-        hit_def_output = [hdf_id_to_def[id] for id in hit_ids_output]
-        
-        df_query_results = pd.DataFrame(
-            {
-                'query':query_ids_output, 
-                'subject': hit_def_output, 
-                'cosine_similarity': distances_output
-            }, columns=['query', 'subject', 'cosine_similarity']
-        ).groupby(by=['query', 'subject']).max().sort_values(by=['query', 'cosine_similarity'], ascending=False).reset_index()
+            #import pdb; pdb.set_trace()
 
-        return df_query_results
+            hdf_id_to_def  = dict(zip(hit_ids_output_sorted, hit_def_output_sorted))
+            hit_def_output = [hdf_id_to_def[id] for id in hit_ids_output]
+            
+            df_query_results = pd.DataFrame(
+                {
+                    'query':query_ids_output, 
+                    'subject': hit_def_output, 
+                    'cosine_similarity': distances_output
+                }, columns=['query', 'subject', 'cosine_similarity']
+            ).groupby(by=['query', 'subject']).max().sort_values(by=['query', 'cosine_similarity'], ascending=False).reset_index()
+
+            yield df_query_results
 
     def save(self, path:str=None) -> None:
 
