@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="ness",
+    name="ness-search",
     version='0.0.1',
     packages=find_packages(),
     install_requires=[requirement.strip('\n') for requirement in open('requirements.txt')],

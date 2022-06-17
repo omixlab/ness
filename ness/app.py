@@ -1,8 +1,9 @@
-from ness.cli.arguments import argument_parser
-from ness.logo import logo
 import logging
 
 def main():
+
+    from ness.cli.arguments import argument_parser
+    from ness.logo import logo
     
     arguments = argument_parser.parse_args()
     
@@ -14,8 +15,8 @@ def main():
         arguments.func(arguments)
 
     elif arguments.version:
-        from ness import version
-        print(version)
+        from ness.utils.version import get_version
+        print(get_version())
 
     else:
         print(logo)

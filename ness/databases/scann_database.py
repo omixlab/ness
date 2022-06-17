@@ -3,11 +3,10 @@ from ness.databases import BaseDatabase
 from ness.models import BaseModel
 from ness.models import load_model
 from ness.utils.iteration import iter_chunks, slice_sequences
-import tensorflow as tf
 import multiprocessing as mp
+import logging
 import pandas as pd
 import numpy as np
-import scann
 import h5py
 import json
 import copy
@@ -33,11 +32,14 @@ class ScannDatabase(BaseDatabase):
 
     def insert_sequences(self, sequences, chunksize=10) -> None:
 
+        processed_sequences = 0
+
         h5_file = h5py.File(self.h5_file_name, 'w')
         h5_file_str_datatype = h5py.special_dtype(vlen=str)
 
         if self.database_metadata['slicesize'] is not None:
             sequences = slice_sequences(sequences, size=self.database_metadata['slicesize'], jump=self.database_metadata['jumpsize'])
+        
         for chunk_id, sequence_chunk in enumerate(iter_chunks(sequences, chunksize), start=self.last_chunk_id+1):
             sequence_ids, sequence_vectors, sequence_raw = [], [], []
 
@@ -52,6 +54,7 @@ class ScannDatabase(BaseDatabase):
             sequence_vectors_array = np.array(sequence_vectors)
 
             normalized_sequence_vectors_array = sequence_vectors_array / np.linalg.norm(sequence_vectors_array, axis=1)[:, np.newaxis]
+
             if self.last_chunk_id == -1:
 
                h5_file.create_dataset('data', data=normalized_sequence_vectors_array, compression="gzip", chunks=True, maxshape=(None,self.model.config['vector_size']))
@@ -66,11 +69,16 @@ class ScannDatabase(BaseDatabase):
                 h5_file['ids'][-len(sequence_ids):] = sequence_ids
 
             self.last_chunk_id += 1
+            processed_sequences += chunksize
+            logging.info(f"{processed_sequences} sequences processed")
             
         return self.database_metadata['records']
 
     def find_sequences(self, sequences:np.array, k:int=10, threads=mp.cpu_count(), chunksize=10, mode='ah') -> pd.DataFrame:
         
+        import tensorflow as tf
+        import scann
+
         dataset = h5py.File(self.h5_file_name, "r")['data']
         dataset_ids = h5py.File(self.h5_file_name, "r")['ids']
 
@@ -121,10 +129,8 @@ class ScannDatabase(BaseDatabase):
             hit_ids_output_sorted = sorted(set(hit_ids_output))
             hit_def_output_sorted = dataset_ids[hit_ids_output_sorted]
 
-            #import pdb; pdb.set_trace()
-
             hdf_id_to_def  = dict(zip(hit_ids_output_sorted, hit_def_output_sorted))
-            hit_def_output = [hdf_id_to_def[id] for id in hit_ids_output]
+            hit_def_output = [hdf_id_to_def[id].decode("utf-8")  for id in hit_ids_output]
             
             df_query_results = pd.DataFrame(
                 {

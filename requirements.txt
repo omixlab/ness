@@ -8,3 +8,4 @@ jsonlines
 scann==1.2.6
 h5py
 pysam
+twine

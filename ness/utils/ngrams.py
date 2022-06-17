@@ -1,6 +1,6 @@
-from Bio.Seq import reverse_complement
-
 def split_ngrams(sequence:str, ksize:int=3, both_strands=False):
+
+    from Bio.Seq import reverse_complement
     
     sequences = [sequence]
 
