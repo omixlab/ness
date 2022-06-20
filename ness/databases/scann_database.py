@@ -55,9 +55,11 @@ class ScannDatabase(BaseDatabase):
 
             normalized_sequence_vectors_array = sequence_vectors_array / np.linalg.norm(sequence_vectors_array, axis=1)[:, np.newaxis]
 
+            normalized_sequence_vectors_array = normalized_sequence_vectors_array.astype(np.float32)
+
             if self.last_chunk_id == -1:
 
-               h5_file.create_dataset('data', data=normalized_sequence_vectors_array, compression="gzip", chunks=True, maxshape=(None,self.model.config['vector_size']))
+               h5_file.create_dataset('data', data=normalized_sequence_vectors_array, compression="gzip", chunks=True, maxshape=(None,self.model.config['vector_size']), dtype='float32')
                h5_file.create_dataset('ids', data=sequence_ids, compression="gzip", chunks=True, dtype=h5_file_str_datatype, maxshape=(None,)) 
 
             else:
@@ -114,6 +116,8 @@ class ScannDatabase(BaseDatabase):
 
             query_vector_normalized = query_vectors / np.linalg.norm(query_vectors, axis=1)[:, np.newaxis]
             
+            query_vector_normalized = query_vector_normalized.astype(np.float32)
+
             hits, distances = searcher.search_batched(query_vector_normalized)
             
             hit_ids_output   = []
