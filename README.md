@@ -2,6 +2,12 @@
 
 NESS is an alignment-free tool for sequence search based on word embedding. The tool is still under development and the code present in this repository is a proof of concept distributed under the GPL v3 license. 
 
+## Installation
+
+```
+$ pip install ness-search
+```
+
 ## Usage
 
 Currently the NESS CLI interface provides the following commands:
