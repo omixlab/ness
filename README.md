@@ -1,6 +1,6 @@
 # NESS
 
-NESS is an alignment-free tool for sequence search based on word embedding. The tool is still under development and the code present in this repository is a proof of concept distributed under the GPL v3 license. 
+NESS is an alignment-free tool for sequence search based on word embedding an approximate nearest neighbor (ANN) search. The tool is still under development and the code present in this repository is a proof of concept distributed under the GPL v3 license. 
 
 ## Installation
 
