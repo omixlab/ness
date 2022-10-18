@@ -42,3 +42,9 @@ $ ness search --input sequences.fasta --database swissprot --output hits.csv
 ```
 # Cite
 Kremer, FS *et al* (2021). *NESS: an word embedding-based tool for alignment-free sequence search*. Available at: https://github.com/omixlab/ness. 
+
+# Acknownledgements
+
+NESS was supported by grants from [Fundação de Amparo à Pesquisa do Estado do Rio Grande do Sul (FAPERGS)](https://fapergs.rs.gov.br/inicial) and is developed in partership with [BiomeHub](https://www.biome-hub.com/).
+
+![](assets/acknowledgements.png)
