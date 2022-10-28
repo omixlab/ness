@@ -16,7 +16,8 @@ def build_model(arguments:Namespace):
     )
     model.build_model(
         fasta_file=arguments.input, 
-        epochs=arguments.epochs
+        epochs=arguments.epochs,
+        threads=arguments.threads
     )
     model.save(arguments.output)
 

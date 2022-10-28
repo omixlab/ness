@@ -30,13 +30,13 @@ class Word2Vec(BaseModel):
             os.mkdir(temp_directory)
     
     
-    def build_model(self, fasta_file:str, epochs=3) -> None:
+    def build_model(self, fasta_file:str, epochs=3, threads=1) -> None:
 
         self.model = gensim.models.Word2Vec(
             vector_size=self.config['vector_size'], 
             window=self.config['window_size'], 
             min_count=self.config['min_count'], 
-            workers=1,
+            workers=threads,
             max_vocab_size=20**self.config['ksize'], 
             sg=1
         )
