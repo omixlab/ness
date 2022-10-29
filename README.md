@@ -8,6 +8,10 @@ NESS is an alignment-free tool for sequence search based on word embedding an ap
 $ pip install ness-search
 ```
 
+## Try on Google Colab!
+
+Try NESS on this [Google Colab notebook](https://colab.research.google.com/github/omixlab/ness/blob/main/notebooks/NESS%20Colab%20Tutorial.ipynb).
+
 ## Usage
 
 Currently the NESS CLI interface provides the following commands:
@@ -31,16 +35,22 @@ model previously built. For DNA sequences, use `--both-strands`.
 $ ness build_database \
     --input swissprot.fasta \
     --model swissprot.model \
-    --output swissprot
+    --output swissprot.csv
 ```
 
 ### `ness search`
 
 Similarly to the `blast*` programs, compares a multi  FASTA file with the previously formated database.
+
 ```
-$ ness search --input sequences.fasta --database swissprot --output hits.csv
+$ ness search \
+    --input sequences.fasta \
+    --database swissprot \
+    --output hits.csv
 ```
+
 # Cite
+
 Kremer, FS *et al* (2021). *NESS: an word embedding-based tool for alignment-free sequence search*. Available at: https://github.com/omixlab/ness. 
 
 # Acknownledgements
