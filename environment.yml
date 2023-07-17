@@ -1,10 +1,13 @@
 name: ness
 channels:
   - conda-forge
+  - pytorch
 dependencies:
   - python=3.7
   - pip
   - jupyter
+  - pytorch
   - pip:
     - -r requirements.txt
     - -e .
+    - git+https://github.com/facebookresearch/esm.git

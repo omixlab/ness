@@ -10,4 +10,4 @@ databases = {
     'scann': ScannDatabase,
 }
 
-from .utils import load_database
+from .utils import load_database, search_sequence_chunk_against_scann_database

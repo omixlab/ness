@@ -33,4 +33,4 @@ def search(arguments:Namespace):
         if chunk_id == 0:
             df_hits_chunk.to_csv(arguments.output, index=False)
         else:
-            df_hits_chunk.to_csv(arguments.ouput, index=False, mode='a', header=False)
+            df_hits_chunk.to_csv(arguments.output, index=False, mode='a', header=False)

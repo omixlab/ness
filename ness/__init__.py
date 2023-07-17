@@ -4,3 +4,5 @@ from . import models
 from . import commands
 from . import cli
 from . import app
+
+__RUNNING__ = False

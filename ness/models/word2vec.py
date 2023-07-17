@@ -2,6 +2,7 @@ from __future__ import annotations
 from .base_model import BaseModel
 from ness.utils.ngrams import split_ngrams
 from ness.utils.fasta import FASTANgramIterator
+import ness
 import numpy as np
 import gensim.models
 from gensim.models.word2vec import LineSentence
@@ -32,6 +33,8 @@ class Word2Vec(BaseModel):
     
     def build_model(self, fasta_file:str, epochs=3, threads=1) -> None:
 
+        ness.__RUNNING__ = True
+
         self.model = gensim.models.Word2Vec(
             vector_size=self.config['vector_size'], 
             window=self.config['window_size'], 
@@ -48,6 +51,8 @@ class Word2Vec(BaseModel):
         self.model.build_vocab(corpus_iterable=LineSentence(self.temp_corpus_file), progress_per=1000)
         self.model.train(corpus_iterable=LineSentence(self.temp_corpus_file), epochs=epochs, total_examples=self.model.corpus_count, total_words=self.model.corpus_total_words)       
         
+        ness.__RUNNING__ = False
+
     @staticmethod
     def load(file_name:str) -> Word2Vec:
         

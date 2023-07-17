@@ -5,7 +5,10 @@ scikit-learn
 biopython
 gensim>4.0.0
 jsonlines
-scann==1.2.6
+scann==1.2.9
 h5py
 pysam
 twine
+pytest
+fair-esm
+annoy

@@ -3,6 +3,7 @@ from .base_model import BaseModel
 from ness.utils.ngrams import split_ngrams
 from ness.utils.fasta import FASTANgramIterator
 from gensim.models.word2vec import LineSentence
+import ness
 import numpy as np
 import gensim.models
 import pickle
@@ -32,6 +33,8 @@ class FastText(BaseModel):
     
     def build_model(self, fasta_file:str, epochs=3) -> None:
 
+        ness.__RUNNING__ = True
+
         self.model = gensim.models.FastText(size=self.config['vector_size'], window=self.config['window_size'], min_count=self.config['min_count'], workers=4, sg=1)
 
         with open(self.temp_corpus_file, 'w') as corpus_writer:
@@ -41,6 +44,8 @@ class FastText(BaseModel):
         self.model.build_vocab(corpus_file=LineSentence(self.temp_corpus_file))
         self.model.train(corpus_file=LineSentence(self.temp_corpus_file), epochs=epochs, total_examples=self.model.corpus_count, total_words=self.model.corpus_total_words)       
     
+        ness.__RUNNING__ = False
+
     @staticmethod
     def load(file_name:str) -> FastText:
         

@@ -2,6 +2,7 @@
 
 tests/
 !tests/data/uniprot_sprot.fasta.subset
+notebooks/data/*
 
 # python
 
